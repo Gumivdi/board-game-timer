@@ -2,11 +2,18 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { v4 as uuid } from "uuid";
 
+export interface ITimer {
+  hours: number;
+  minutes: number;
+  seconds: number;
+}
+
 export interface IPlayer {
   id: string;
   name: string;
   color: string;
-  timer: number;
+  timer: ITimer;
+  active: boolean;
 }
 
 export interface IPlayersState {
@@ -18,7 +25,15 @@ export type PlayerKeys = keyof IPlayer;
 
 const initialState: IPlayersState = {
   limit: 5,
-  players: [{ id: uuid(), name: "", color: "#000000", timer: 0 }],
+  players: [
+    {
+      id: uuid(),
+      name: "",
+      color: "#005ca3",
+      timer: { hours: 0, minutes: 0, seconds: 0 },
+      active: false,
+    },
+  ],
 };
 
 export const playersSlice = createSlice({
@@ -29,15 +44,18 @@ export const playersSlice = createSlice({
       state.players.push({
         id: uuid(),
         name: "",
-        color: "#000000",
-        timer: 0,
+        color: "#005ca3",
+        timer: { hours: 0, minutes: 0, seconds: 0 },
+        active: false,
       });
     },
+
     remove: (state, action: PayloadAction<string>) => {
       state.players = state.players.filter(
         (player) => player.id !== action.payload
       );
     },
+
     update: (
       state,
       action: PayloadAction<{
@@ -53,9 +71,25 @@ export const playersSlice = createSlice({
         [action.payload.data.key]: action.payload.data.value,
       };
     },
+
+    toggleTimer: (state, action: PayloadAction<string>) => {
+      const playerIndex = state.players.findIndex(
+        (player) => player.id === action.payload
+      );
+      const selectedPlayer = state.players[playerIndex];
+
+      if (selectedPlayer.active) {
+        selectedPlayer.active = false;
+      } else {
+        state.players.map((player) => (player.active = false));
+        selectedPlayer.active = true;
+      }
+
+      state.players[playerIndex] = selectedPlayer;
+    },
   },
 });
 
-export const { add, remove, update } = playersSlice.actions;
+export const { add, remove, update, toggleTimer } = playersSlice.actions;
 
 export default playersSlice.reducer;
